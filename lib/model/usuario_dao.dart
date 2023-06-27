@@ -7,22 +7,18 @@ class UsuarioDAO {
     //Chama o Banco de Dados
     var db = await DBLivraria.getInstance();
 
-    int novoID = await db.insert(
-      'usuario',
-      usuario.toMap(),
-      //Só funciona se os atributos da classe aluno forem os mesmo do banco de dados
-    );
+    //Retorna o ID da última inserção
+    var novoID = await db.insert('usuario', usuario.toMap());
 
     return novoID;
   }
 
   //SELECT
-  //Verifica por ID
-  static Future<List<Usuario>> carregarUsuario(int id) async {
+  //Buscar por ID
+  static Future<List<Usuario>> buscarUsuarioID(int id) async {
     //Chama o Banco de Dados
     var db = await DBLivraria.getInstance();
 
-    //await porque retorna um Future de Map
     List<Map<String, Object?>> resultado =
         await db.query('usuario', where: 'id=?', whereArgs: [id]);
 
@@ -32,12 +28,11 @@ class UsuarioDAO {
     return usuario;
   }
 
-  //Verifica por Email
-  static Future<List<Usuario>> verificacaoLogin(String email) async {
+  //Busca por Email
+  static Future<List<Usuario>> buscaUsuarioEmail(String email) async {
     //Chama o Banco de Dados
     var db = await DBLivraria.getInstance();
 
-    //await porque retorna um Future de Map
     List<Map<String, Object?>> resultado =
         await db.query('usuario', where: 'email=?', whereArgs: [email]);
 
@@ -47,8 +42,60 @@ class UsuarioDAO {
     return usuario;
   }
 
+  //Consultar se email existe
+  static Future<bool> consultarEmail(String email) async {
+    //Chama o Banco de Dados
+    var db = await DBLivraria.getInstance();
+
+    //Consulta por email
+    var resultado =
+        await db.rawQuery('SELECT * FROM usuario WHERE email = ?', [email]);
+
+    if (resultado.isNotEmpty) {
+      //Se achar algo retorna true
+      return true;
+    } else {
+      //Se não achar nada retorna false
+      return false;
+    }
+  }
+
+  //Verifica email e senha Login
+  static Future<bool> verificaLogin(String email, senha) async {
+    //Chama o Banco de Dados
+    var db = await DBLivraria.getInstance();
+
+    //Consulta por email e senha
+    var resultado = await db.rawQuery(
+        'SELECT * FROM usuario WHERE email = ? AND senha = ?', [email, senha]);
+
+    if (resultado.isNotEmpty) {
+      //Se existir retorna true
+      return true;
+    } else {
+      //Se não existir retorna false
+      return false;
+    }
+  }
+
   //UPDATE
-  static Future<void> atualizarUsuario(usuario) async {
+  static Future<bool> atualizarSenhaUsuario(String email) async {
+    try {
+      //Chama o Banco de Dados
+      var db = await DBLivraria.getInstance();
+
+      //Altera a senha do usuário para 1234
+      await db.rawQuery(
+        'UPDATE usuario SET senha = ? WHERE email = ?',
+        ['1234', email],
+      );
+      return true;
+    } on Exception catch (_) {
+      return false;
+    }
+  }
+
+  static Future<void> atualizarUsuario(Usuario usuario) async {
     //Chama o Banco de Dados
     var db = await DBLivraria.getInstance();
 
@@ -57,7 +104,7 @@ class UsuarioDAO {
   }
 
   //DELET
-  static Future<void> deletarUsuario(Usuario usuario) async {
+  Future<void> deletarUsuario(Usuario usuario) async {
     //Chama o Banco de Dados
     var db = await DBLivraria.getInstance();
 

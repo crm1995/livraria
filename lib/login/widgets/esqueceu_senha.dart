@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:livraria/model/usuario_dao.dart';
 
 class EsqueceuSenha extends StatefulWidget {
   const EsqueceuSenha({super.key});
@@ -13,8 +14,8 @@ class _EsqueceuSenhaState extends State<EsqueceuSenha> {
 
   @override
   void initState() {
-    _emailController = TextEditingController();
     super.initState();
+    _emailController = TextEditingController();
   }
 
   @override
@@ -23,8 +24,19 @@ class _EsqueceuSenhaState extends State<EsqueceuSenha> {
     super.dispose();
   }
 
-  //Função que redefine a senha
-  redefinirSenha(BuildContext context) {
+  //Altera a senha no banco de dados
+  Future<void> redefinirSenha(String email) async {
+    bool resultado = await UsuarioDAO.atualizarSenhaUsuario(email);
+
+    if (resultado == true) {
+      alertaSenhaRedefinida();
+    } else {
+      alertaEmailInvalido();
+    }
+  }
+
+  //Alerta de "Senha Redefinida"
+  alertaSenhaRedefinida() {
     //Botão OK
     Widget btConfirmar = TextButton(
       child: const Text('OK'),
@@ -37,6 +49,32 @@ class _EsqueceuSenhaState extends State<EsqueceuSenha> {
     AlertDialog alerta = AlertDialog(
       title: const Text('Senha Redefinida'),
       content: const Text('Sua nova senha é: 1234'),
+      actions: [btConfirmar],
+    );
+
+    //Exibir o diálogo
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alerta;
+      },
+    );
+  }
+
+  //Alerta de "Senha Redefinida"
+  alertaEmailInvalido() {
+    //Botão OK
+    Widget btConfirmar = TextButton(
+      child: const Text('OK'),
+      onPressed: () {
+        Navigator.pop(context); //Continua na tela de Redefinir Senha
+      },
+    );
+
+    //Configura o Alerta
+    AlertDialog alerta = AlertDialog(
+      title: const Text('Email não Encontrado!'),
+      //content: const Text('Email não Encontrado!'),
       actions: [btConfirmar],
     );
 
@@ -102,7 +140,7 @@ class _EsqueceuSenhaState extends State<EsqueceuSenha> {
                       minimumSize:
                           Size(MediaQuery.of(context).size.width * 0.40, 45)),
                   onPressed: () {
-                    redefinirSenha(context);
+                    redefinirSenha(_emailController.text);
                   },
                   child: const Text(
                     'Redefinir Senha',

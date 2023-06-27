@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:livraria/model/classes/usuario.dart';
 import 'package:livraria/model/usuario_dao.dart';
-//import 'package:livraria/core/processaDados.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -11,9 +11,6 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  Usuario _usuario = Usuario(nome: '', email: '', telefone: '', senha: '');
-  //int _idUsuario = 0; //Inicia em 0
-
   //Campos Login
   late final TextEditingController _emailController;
   late final TextEditingController _senhaController;
@@ -32,14 +29,110 @@ class _LoginState extends State<Login> {
     super.dispose();
   }
 
-  //Busca o usuário no banco para conferir se existe
-  Future<void> verificaUsuario() async {
-    List<Usuario> usuarios =
-        await UsuarioDAO.verificacaoLogin(_emailController.text);
+  Future<void> verificaLogin(String email, senha) async {
+    //Faz a consulta com o email do usuario
+    List<Usuario> usuario = await UsuarioDAO.buscaUsuarioEmail(email);
 
-    setState(() {
-      _usuario = usuarios[0];
-    });
+    if (usuario.isNotEmpty) {
+      //Faz a consulta com o Email e a Senha
+      bool resultado = await UsuarioDAO.verificaLogin(email, senha);
+
+      if (resultado == true) {
+        //Pega o ID
+        int id = usuario[0].id!;
+
+        //Crio uma "sessão" e atribuo o id nela.
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('id_usuario', id);
+
+        alertaLogadoComSucesso();
+      } else {
+        alertaSenhaIncorreta();
+      }
+    } else {
+      alertaEmailNaoEncontrado();
+    }
+  }
+
+  //Alerta de "Email Não Encontrado"
+  alertaEmailNaoEncontrado() {
+    //Botão OK
+    Widget btConfirmar = TextButton(
+      child: const Text('OK'),
+      onPressed: () {
+        Navigator.pop(context); //Volta para tela de login
+      },
+    );
+
+    //Configura o Alerta
+    AlertDialog alerta = AlertDialog(
+      title: const Text('Não foi possível fazer Login'),
+      content: const Text('Email não encontrado!'),
+      actions: [btConfirmar],
+    );
+
+    //Exibir o diálogo
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alerta;
+      },
+    );
+  }
+
+  //Alerta de "Senha Incorreta"
+  alertaSenhaIncorreta() {
+    //Botão OK
+    Widget btConfirmar = TextButton(
+      child: const Text('OK'),
+      onPressed: () {
+        Navigator.pop(context); //Volta para tela de login
+      },
+    );
+
+    //Configura o Alerta
+    AlertDialog alerta = AlertDialog(
+      title: const Text('Não foi possível fazer Login'),
+      content: const Text('Senha Incorreta!'),
+      actions: [btConfirmar],
+    );
+
+    //Exibir o diálogo
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alerta;
+      },
+    );
+  }
+
+  //Alerta de "Logado com Sucesso"
+  alertaLogadoComSucesso() {
+    //Botão OK
+    Widget btConfirmar = TextButton(
+      child: const Text('OK', style: TextStyle(fontSize: 18)),
+      onPressed: () {
+        //Rota para onde vai
+        Navigator.pushNamed(
+          context,
+          '/biblioteca',
+        );
+      },
+    );
+
+    //Configura o Alerta
+    AlertDialog alerta = AlertDialog(
+      title: const Text('Logado com Sucesso!'),
+      actions: [btConfirmar],
+    );
+
+    //Exibir o diálogo
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alerta;
+      },
+    );
   }
 
   @override
@@ -159,20 +252,8 @@ class _LoginState extends State<Login> {
                       backgroundColor: Colors.lightBlue,
                       minimumSize:
                           Size(MediaQuery.of(context).size.width * 0.40, 45)),
-                  onPressed: () {
-                    //var email = _emailController.text;
-                    //var senha = _senhaController.text;
-                    //processaDadosLogin(email, senha);
-                    //Rota para onde vai
-                    Navigator.pushNamed(
-                      context,
-                      '/biblioteca',
-                      arguments: {
-                        'email': _emailController.text,
-                        'senha': _senhaController.text
-                      },
-                    );
-                  },
+                  onPressed: () => verificaLogin(
+                      _emailController.text, _senhaController.text),
                   child: const Text(
                     'Login',
                     style: TextStyle(

@@ -183,7 +183,7 @@ class _AlterarSenhaState extends State<AlterarSenha> {
 
   //Recupera o usuário do banco para usar nos campos
   Future<void> recuperaUsuario() async {
-    List<Usuario> usuarios = await UsuarioDAO.carregarUsuario(_idUsuario);
+    List<Usuario> usuarios = await UsuarioDAO.buscarUsuarioID(_idUsuario);
 
     setState(() {
       _usuario = usuarios[0];

@@ -63,52 +63,6 @@ class _BibliotecaState extends State<Biblioteca> {
 
   @override
   Widget build(BuildContext context) {
-    /*
-    // args é o argumento que vem do botão de Cadastro
-    var args =
-        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-
-    int idUsuario = args['id'];
-
-    debugPrint('#############################################################');
-    debugPrint('O id do Usuário é: $idUsuario');
-    debugPrint('#############################################################');
-
-    //Busca o usuário no banco
-    //var resultado = UsuarioDAO.carregarUsuario(idUsuario);
-  
-    FutureBuilder(
-      future: UsuarioDAO.carregarUsuario(idUsuario), //Quem fornece os dados
-      builder: ((context, snapshot) {
-        //Se não terminou, fica com o Circular
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-        //Se tiver erro
-        if (snapshot.hasError) {
-          return Center(
-            child: Text('Houve um erro: ${snapshot.error}'),
-          );
-        }
-
-        //Se terminou e não teve erro
-        List<Usuario> usuarios = snapshot.data as List<Usuario>;
-
-        //Cria um novo usuário com as informações do banco
-        var usuario = Usuario(
-          id: idUsuario,
-          nome: usuarios[0].nome,
-          email: usuarios[0].email,
-          telefone: usuarios[0].telefone,
-          senha: usuarios[0].senha,
-        );
-
-        return build(context);
-      }),
-    );
-*/
     return WillPopScope(
       //Não deixa voltar usando a seta do appBar ou do Celular
       onWillPop: () async {

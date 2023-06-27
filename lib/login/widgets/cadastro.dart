@@ -16,14 +16,16 @@ class _CadastroState extends State<Cadastro> {
   late final TextEditingController _emailController;
   late final TextEditingController _telefoneController;
   late final TextEditingController _senhaController;
+  late final TextEditingController _confirmarSenhaController;
 
   @override
   void initState() {
+    super.initState();
     _nomeController = TextEditingController();
     _emailController = TextEditingController();
     _telefoneController = TextEditingController();
     _senhaController = TextEditingController();
-    super.initState();
+    _confirmarSenhaController = TextEditingController();
   }
 
   @override
@@ -32,6 +34,7 @@ class _CadastroState extends State<Cadastro> {
     _emailController.dispose();
     _telefoneController.dispose();
     _senhaController.dispose();
+    _confirmarSenhaController.dispose();
     super.dispose();
   }
 
@@ -53,28 +56,60 @@ class _CadastroState extends State<Cadastro> {
     });
   }
 
+  //Verificar Campos Senhas
+  verificarCampos() {
+    if (_nomeController.text.isNotEmpty &&
+        _emailController.text.isNotEmpty &&
+        _telefoneController.text.isNotEmpty &&
+        _senhaController.text.isNotEmpty &&
+        _confirmarSenhaController.text.isNotEmpty) {
+      if (_senhaController.text == _confirmarSenhaController.text) {
+        return true;
+      } else {
+        alertaSenhasDiferentes();
+      }
+    } else {
+      alertaCamposVazios();
+    }
+  }
+
   //Cadastrar usuário
-  Future<void> _cadastrarUsuario() async {
-    var usuario = Usuario(
-      nome: _nomeController.text,
-      email: _emailController.text,
-      telefone: _telefoneController.text,
-      senha: _senhaController.text,
-    );
+  Future<void> cadastrarUsuario() async {
+    //Consulta se email já existe
+    bool resultadoEmail =
+        await UsuarioDAO.consultarEmail(_emailController.text);
 
-    //Inserir no banco de dados
-    int novoID = await UsuarioDAO.inserir(usuario);
+    if (resultadoEmail == true) {
+      //Exibe um alerta avisando que já existe esse email
+      alertaEmailExistente();
+    } else {
+      //Passa as informações dos campos para o Usuário
+      var usuario = Usuario(
+        nome: _nomeController.text,
+        email: _emailController.text,
+        telefone: _telefoneController.text,
+        senha: _senhaController.text,
+      );
 
-    //Crio uma "sessão" e atribuo o id nela.
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('id_usuario', novoID);
+      //Verifica os campos
+      var resultadoCampos = verificarCampos();
 
-    //Exibir Alerta
-    cadastradoComSucesso();
+      if (resultadoCampos == true) {
+        //Inserir no banco de dados
+        int novoID = await UsuarioDAO.inserir(usuario);
+
+        //Crio uma "sessão" e atribuo o id nela.
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('id_usuario', novoID);
+
+        //Exibir Alerta
+        alertaCadastradoComSucesso();
+      }
+    }
   }
 
   //Alerta de "Cadastrado com Sucesso"
-  cadastradoComSucesso() {
+  alertaCadastradoComSucesso() {
     //Botão OK
     Widget btConfirmar = TextButton(
       child: const Text('OK', style: TextStyle(fontSize: 18)),
@@ -90,6 +125,88 @@ class _CadastroState extends State<Cadastro> {
     //Configura o Alerta
     AlertDialog alerta = AlertDialog(
       title: const Text('Cadastrado com Sucesso!'),
+      actions: [btConfirmar],
+    );
+
+    //Exibir o diálogo
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alerta;
+      },
+    );
+  }
+
+  //Alerta de "Email já Utilizado"
+  alertaEmailExistente() {
+    //Botão OK
+    Widget btConfirmar = TextButton(
+      child: const Text('OK', style: TextStyle(fontSize: 18)),
+      onPressed: () {
+        //Continua na página de cadastro
+        Navigator.pop(context);
+      },
+    );
+
+    //Configura o Alerta
+    AlertDialog alerta = AlertDialog(
+      title: const Text('Não foi possível cadastrar!'),
+      content:
+          const Text('Esse email já está sendo utilizado por outro usuário!'),
+      actions: [btConfirmar],
+    );
+
+    //Exibir o diálogo
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alerta;
+      },
+    );
+  }
+
+  //Alerta de "Senhas Diferentes"
+  alertaSenhasDiferentes() {
+    //Botão OK
+    Widget btConfirmar = TextButton(
+      child: const Text('OK', style: TextStyle(fontSize: 18)),
+      onPressed: () {
+        //Continua na página de cadastro
+        Navigator.pop(context);
+      },
+    );
+
+    //Configura o Alerta
+    AlertDialog alerta = AlertDialog(
+      title: const Text('Não foi possível cadastrar!'),
+      content: const Text('Senhas Diferentes!'),
+      actions: [btConfirmar],
+    );
+
+    //Exibir o diálogo
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alerta;
+      },
+    );
+  }
+
+  //Alerta de "Campos Vazios"
+  alertaCamposVazios() {
+    //Botão OK
+    Widget btConfirmar = TextButton(
+      child: const Text('OK', style: TextStyle(fontSize: 18)),
+      onPressed: () {
+        //Continua na página de cadastro
+        Navigator.pop(context);
+      },
+    );
+
+    //Configura o Alerta
+    AlertDialog alerta = AlertDialog(
+      title: const Text('Não foi possível cadastrar!'),
+      content: const Text('Campo(s) Vazio(s)!'),
       actions: [btConfirmar],
     );
 
@@ -277,6 +394,7 @@ class _CadastroState extends State<Cadastro> {
 
                 //Campo Confirmar Senha
                 TextField(
+                  controller: _confirmarSenhaController,
                   obscureText: _confirmarSenhaEscondida,
                   decoration: InputDecoration(
                     label: const Text(
@@ -323,7 +441,7 @@ class _CadastroState extends State<Cadastro> {
                       backgroundColor: Colors.lightBlue,
                       minimumSize:
                           Size(MediaQuery.of(context).size.width * 0.40, 45)),
-                  onPressed: () => _cadastrarUsuario(),
+                  onPressed: () => cadastrarUsuario(),
                   child: const Text(
                     'Cadastrar',
                     style: TextStyle(

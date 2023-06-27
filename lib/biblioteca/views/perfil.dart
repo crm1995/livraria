@@ -12,7 +12,7 @@ class Perfil extends StatefulWidget {
 
 class _PerfilState extends State<Perfil> {
   Usuario _usuario = Usuario(nome: '', email: '', telefone: '', senha: '');
-  int _idUsuario = 0; //Inicia em 0
+  int? _idUsuario;
   bool _perfilAtualizado = false;
 
   //Campos Perfil
@@ -23,13 +23,12 @@ class _PerfilState extends State<Perfil> {
 
   @override
   void initState() {
+    super.initState();
+    _recuperaID(); //Recupera o ID do Usuário
     _nomeController = TextEditingController();
     _emailController = TextEditingController();
     _telefoneController = TextEditingController();
     _senhaController = TextEditingController();
-    _recuperaID(); //Altera o ID
-
-    super.initState();
   }
 
   @override
@@ -38,7 +37,6 @@ class _PerfilState extends State<Perfil> {
     _emailController.dispose();
     _telefoneController.dispose();
     _senhaController.dispose();
-
     super.dispose();
   }
 
@@ -51,7 +49,7 @@ class _PerfilState extends State<Perfil> {
 
   //Recupera o usuário do banco para usar nos campos
   Future<void> recuperaUsuario() async {
-    List<Usuario> usuarios = await UsuarioDAO.carregarUsuario(_idUsuario);
+    List<Usuario> usuarios = await UsuarioDAO.buscarUsuarioID(_idUsuario!);
 
     setState(() {
       _usuario = usuarios[0];
@@ -179,12 +177,6 @@ class _PerfilState extends State<Perfil> {
 
                     //Ícone antes do texto
                     prefixIcon: const Icon(Icons.person),
-                    /*
-                    //Ícone depois do texto
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: limpaCampo,
-                    ),*/
                   ),
                 ),
 
