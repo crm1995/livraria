@@ -1,7 +1,6 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 
-class Usuario extends ChangeNotifier {
+class Usuario {
   final int? id; //Null
   final String nome;
   final String email;

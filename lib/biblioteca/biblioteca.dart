@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:livraria/biblioteca/views/dashboard.dart';
-import 'package:livraria/biblioteca/views/favoritos.dart';
+import 'package:livraria/biblioteca/views/telaFavoritos.dart';
 import 'package:livraria/biblioteca/views/perfil.dart';
 
 class Biblioteca extends StatefulWidget {
@@ -12,7 +12,7 @@ class Biblioteca extends StatefulWidget {
 
 class _BibliotecaState extends State<Biblioteca> {
   var _itemSelecionado = 0;
-  final _subTelas = const [Dashboard(), Favoritos(), Perfil()];
+  final _subTelas = const [Dashboard(), TelaFavoritos(), Perfil()];
 
   //Altera as telas através do BottomNavigationBar
   void _alterarBottomNav(int index) {

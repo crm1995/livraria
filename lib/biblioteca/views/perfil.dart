@@ -12,7 +12,7 @@ class Perfil extends StatefulWidget {
 
 class _PerfilState extends State<Perfil> {
   Usuario _usuario = Usuario(nome: '', email: '', telefone: '', senha: '');
-  int? _idUsuario;
+  late int _idUsuario;
   bool _perfilAtualizado = false;
 
   //Campos Perfil
@@ -49,7 +49,7 @@ class _PerfilState extends State<Perfil> {
 
   //Recupera o usuário do banco para usar nos campos
   Future<void> recuperaUsuario() async {
-    List<Usuario> usuarios = await UsuarioDAO.buscarUsuarioID(_idUsuario!);
+    List<Usuario> usuarios = await UsuarioDAO.buscarUsuarioID(_idUsuario);
 
     setState(() {
       _usuario = usuarios[0];

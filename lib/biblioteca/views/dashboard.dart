@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:livraria/model/classes/livro.dart';
 import 'package:livraria/biblioteca/widgets/livro_card.dart';
+import 'package:livraria/model/classes/livro_api.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -10,8 +10,30 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+  final TextEditingController pesquisaControler = TextEditingController();
+
   //Lista de Livros
-  final List<Livro> livros = Livro.gerarLivros();
+  List<LivroApi> _listaLivrosApi = [];
+
+  @override
+  void dispose() {
+    pesquisaControler.dispose();
+    super.dispose();
+  }
+
+  Future<void> pesquisar() async {
+    final pesquisa = pesquisaControler.text.trim();
+
+    if (pesquisa.isNotEmpty) {
+      List<LivroApi> listaLivros = await LivroApi.pesquisaLivros(pesquisa);
+
+      setState(() {
+        _listaLivrosApi = listaLivros;
+      });
+
+      pesquisaControler.clear();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,17 +42,17 @@ class _DashboardState extends State<Dashboard> {
       appBar: AppBar(
         backgroundColor: Colors.lightBlue,
         automaticallyImplyLeading: false, //Remove o "voltar"
-        title: const SizedBox(
+        title: SizedBox(
           width: 300,
           height: 40,
           child: TextField(
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               //Backgroud do campo de pesquisa
               filled: true,
               fillColor: Color.fromRGBO(255, 255, 255, 1),
 
               //Texto dentro do campo
-              hintText: ' Pesquisar',
+              hintText: '       Pesquisar',
               contentPadding: EdgeInsets.all(1.0),
 
               //Borda antes de clicar
@@ -51,21 +73,15 @@ class _DashboardState extends State<Dashboard> {
               ),
 
               //Ícone antes do texto
-              prefixIcon: Icon(
+              suffixIcon: Icon(
                 Icons.search_outlined,
                 color: Colors.black,
               ),
             ),
+            onTap: () => pesquisar(),
+            controller: pesquisaControler,
           ),
         ),
-
-        actions: const [
-          SizedBox(
-            width: 65,
-            height: 40,
-            child: Icon(Icons.tune_outlined),
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -73,16 +89,16 @@ class _DashboardState extends State<Dashboard> {
         child: GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2, //Quantidade de itens lado a lado
-            crossAxisSpacing: 4, //Espaçamento lateral
-            mainAxisSpacing: 4, //Espaçamento vertical
+            crossAxisSpacing: 4, //Espaçamento lateral Entre Cards
+            mainAxisSpacing: 4, //Espaçamento vertical Entre Cards
           ),
 
           //A quantidade de livros na lista é o tamanho do "for"
-          itemCount: livros.length,
+          itemCount: _listaLivrosApi.length,
 
           //chama a lista toda, um por vez (como num for) e coloca em algo (Card)
           itemBuilder: (context, index) => LivroCard(
-            livro: livros[index],
+            livro: _listaLivrosApi[index],
           ),
         ),
       ),

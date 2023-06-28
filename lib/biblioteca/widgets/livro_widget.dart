@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:livraria/model/classes/livro.dart';
+import 'package:livraria/model/classes/favoritos.dart';
+import 'package:livraria/model/classes/livro_api.dart';
+import 'package:livraria/model/livro_dao.dart';
+import 'package:livraria/model/favoritos_dao.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
 
 class LivroWidget extends StatefulWidget {
   const LivroWidget({super.key, required this.livro});
 
-  final Livro livro;
+  final LivroApi livro;
 
   @override
   State<LivroWidget> createState() => _LivroWidgetState();
@@ -12,6 +17,20 @@ class LivroWidget extends StatefulWidget {
 
 class _LivroWidgetState extends State<LivroWidget> {
   bool _btFavoritos = false;
+  int _idUsuario = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _recuperaID(); //Recupera o ID do Usuário
+  }
+
+  Future<void> _recuperaID() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _idUsuario = prefs.getInt('id_usuario') as int;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +55,20 @@ class _LivroWidgetState extends State<LivroWidget> {
               children: [
                 IconButton(
                   onPressed: () {
-                    // Colocar o livro nos favoritos do Banco de Dados
+                    //Inserir Livro no banco
+                    LivroDAO.inserirLivro(widget.livro);
+
+                    ConflictAlgorithm.replace;
+
+                    //Inserir Usuário e Livro nos Favoritos
+                    Favoritos favoritos = Favoritos(
+                        idUsuario: _idUsuario,
+                        codigoLivro: widget.livro.codigo);
+
+                    //Inserir os favoritos nos Favoritos
+                    FavoritosDAO.inserirFavoritos(favoritos);
+
+                    //Muda o estado do coração
                     setState(() {
                       _btFavoritos = !_btFavoritos;
                     });
@@ -53,10 +85,11 @@ class _LivroWidgetState extends State<LivroWidget> {
             ),
 
             //Capa Livro
-            Image(
+            Image.network(
+              widget.livro.capa ??
+                  'https://jbinstrumentos.com.br/wp-content/uploads/2021/04/sem-imagem.jpg',
               width: 200,
-              height: 400,
-              image: AssetImage(widget.livro.capa),
+              height: 300,
             ),
 
             Column(
@@ -78,6 +111,7 @@ class _LivroWidgetState extends State<LivroWidget> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text('Codigo: ${widget.livro.codigo}'),
                     //Autor
                     Text(
                       'Autor: ${widget.livro.autor}',

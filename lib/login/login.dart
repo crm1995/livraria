@@ -39,7 +39,7 @@ class _LoginState extends State<Login> {
 
       if (resultado == true) {
         //Pega o ID
-        int id = usuario[0].id!;
+        var id = usuario[0].id as int;
 
         //Crio uma "sessão" e atribuo o id nela.
         final prefs = await SharedPreferences.getInstance();
